@@ -14,20 +14,20 @@ import com.jordy.desafioTecnico.Entities.Terminal;
 import com.jordy.desafioTecnico.Services.TerminalService;
 
 @RestController
-@RequestMapping(value = "/version")
+@RequestMapping(path = "/${api.version}")
 public class TerminalResource {
 	
 	@Autowired
 	private TerminalService service;
 	
-	@GetMapping(path = "/entityName/logic")
+	@GetMapping(path = "/Terminals")//extra
 	public ResponseEntity<List<Terminal>> findAllTerminals(){
 		List<Terminal> list = service.findAll();
 				
 		return ResponseEntity.ok().body(list);		
 	}
 	
-	@GetMapping(path = "/entityName/{logic}")
+	@GetMapping(path = "/${resource.entity}/{logic}")
 	public ResponseEntity<Terminal> findByLogic(@PathVariable(value = "logic") int logic){
 		Terminal t = service.findByLogic(logic);
 				
