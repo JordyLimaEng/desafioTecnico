@@ -1,14 +1,23 @@
-package com.jordy.desafioTecnico.entities;
+package com.jordy.desafioTecnico.Entities;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
 public class Terminal implements Serializable{
 	/**
 	 * Serializable para que o objeto possa transitar pela rede e etc, em bytes.
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 	int logic;
 	String serial;
 	String model;
@@ -20,9 +29,10 @@ public class Terminal implements Serializable{
 	int mxf;
 	String VERFM;
 	
-	public Terminal(int logic, String serial, String model, int sam, String ptid, int plat, String version, int mxr,
-			int mxf, String vERFM) {
+	public Terminal(Long id, int logic, String serial, String model, int sam, String ptid, int plat, String version,
+			int mxr, int mxf, String vERFM) {
 		super();
+		this.id = id;
 		this.logic = logic;
 		this.serial = serial;
 		this.model = model;
@@ -93,15 +103,22 @@ public class Terminal implements Serializable{
 	}
 	public void setModel(String model) {
 		this.model = model;
+	}	
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
 	}
 	@Override
 	public String toString() {
-		return "Terminal [logic=" + logic + ", serial=" + serial + ", sam=" + sam + ", ptid=" + ptid + ", plat=" + plat
-				+ ", version=" + version + ", mxr=" + mxr + ", VERFM=" + VERFM + "]";
+		return "Terminal [id=" + id + ", logic=" + logic + ", serial=" + serial + ", model=" + model + ", sam=" + sam
+				+ ", ptid=" + ptid + ", plat=" + plat + ", version=" + version + ", mxr=" + mxr + ", mxf=" + mxf
+				+ ", VERFM=" + VERFM + "]";
 	}
 	@Override
 	public int hashCode() {
-		return Objects.hash(VERFM, logic, mxr, plat, ptid, sam, serial, version);
+		return Objects.hash(id);
 	}
 	@Override
 	public boolean equals(Object obj) {
@@ -112,8 +129,6 @@ public class Terminal implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		Terminal other = (Terminal) obj;
-		return Objects.equals(VERFM, other.VERFM) && logic == other.logic && mxr == other.mxr && plat == other.plat
-				&& Objects.equals(ptid, other.ptid) && sam == other.sam && Objects.equals(serial, other.serial)
-				&& Objects.equals(version, other.version);
+		return Objects.equals(id, other.id);
 	}	
 }
