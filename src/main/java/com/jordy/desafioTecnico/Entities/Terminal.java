@@ -29,6 +29,10 @@ public class Terminal implements Serializable{
 	int mxf;
 	String VERFM;
 	
+	public Terminal() {
+		
+	}
+	
 	public Terminal(Long id, int logic, String serial, String model, int sam, String ptid, int plat, String version,
 			int mxr, int mxf, String vERFM) {
 		super();
