@@ -22,4 +22,8 @@ public class TerminalService {
 		return repository.findByLogic(logic);		
 	}
 	
+	public Terminal addTerminal(Terminal t) {
+		return repository.save(t);
+	}
+	
 }
