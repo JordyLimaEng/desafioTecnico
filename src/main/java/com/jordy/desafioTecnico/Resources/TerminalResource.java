@@ -1,29 +1,33 @@
 package com.jordy.desafioTecnico.Resources;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.jordy.desafioTecnico.DTO.TerminalDTO;
 import com.jordy.desafioTecnico.Entities.Terminal;
+import com.jordy.desafioTecnico.Exceptions.ResourceCantBeUpdated;
+import com.jordy.desafioTecnico.Exceptions.ResourceNotValid;
 import com.jordy.desafioTecnico.Services.TerminalService;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -54,32 +58,55 @@ public class TerminalResource {
 
 	@PostMapping(path = "/${resource.entity}", consumes = MediaType.TEXT_HTML_VALUE)
 	public ResponseEntity<?> SaveWithValidationSchema(@RequestBody String reqStr) throws JsonProcessingException {
-		System.out.println("Request Json String" + reqStr);
-		
-		InputStream schemaAsStream = TerminalResource.class.getClassLoader().getResourceAsStream("terminal.schema.json");
-		JsonSchema schema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(schemaAsStream);
 		
 		JSONObject jsonReqStr = returnReqAsJson(reqStr);
 		
-		ObjectMapper om = new ObjectMapper();
-		om.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
-		JsonNode jsonNode = om.readTree(jsonReqStr.toString());
-		
-		Set<ValidationMessage> errors = schema.validate(jsonNode);
-        String errorsCombined = "";
-        for (ValidationMessage error : errors) {
-            System.out.println("Validation Error: "+ error);
-            errorsCombined += error.toString() + "\n";
-        }
-
-        if (errors.size() > 0) {
-        	return ResponseEntity.badRequest().body("Please fix your entry!\n " + errorsCombined);
-        }
+		ValidateWithSchema(reqStr);
 		
         Terminal terminalSave = new Terminal(null, jsonReqStr);
-		service.addTerminal(terminalSave);
+		terminalSave = service.addTerminal(terminalSave);
+		URI uri = ServletUriComponentsBuilder
+				.fromCurrentRequest().path("/{logic}")
+				.buildAndExpand(terminalSave.getLogic()).toUri();
+		return ResponseEntity.created(uri).body(terminalSave);
+	}
+	
+	@PutMapping(path = "/${resource.entity}/{logic}")
+	public ResponseEntity<Terminal> updateTerminal(@PathVariable(value = "logic") int logic, @RequestBody TerminalDTO obj) throws JsonMappingException, JsonProcessingException {
+		int logicDb = service.findByLogic(logic).getLogic();
 		
-		return ResponseEntity.ok().body(jsonReqStr.toString());
+		if(logicDb != obj.getLogic()) {
+			throw new ResourceCantBeUpdated(logicDb);
+		}
+		
+		ValidateWithSchema(obj.toString());
+		
+		Terminal response = service.updateTerminal(logic, obj.getSerial(), obj.getModel(), obj.getSam(), obj.getPtid(), obj.getPlat(), obj.getVersion(), obj.getMxr(), obj.getMxf(), obj.getVERFM());
+		return ResponseEntity.ok().body(response);
+	}
+	
+	String ValidateWithSchema(String input) throws JsonMappingException, JsonProcessingException {
+
+		JSONObject jsonReqStr = returnReqAsJson(input);
+		InputStream schemaAsStream = TerminalResource.class.getClassLoader()
+				.getResourceAsStream("terminal.schema.json");
+		JsonSchema schema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(schemaAsStream);
+		ObjectMapper om = new ObjectMapper();
+		om.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+
+		JsonNode jsonNode = om.readTree(jsonReqStr.toString());
+		Set<ValidationMessage> errors = schema.validate(jsonNode);
+		String errorsCombined = "";
+
+		for (ValidationMessage error : errors) {
+			errorsCombined += error.toString().split(":")[0].substring(2) +":"+ error.toString().split(":")[1] + "; ";
+		}
+		
+		if (errors.size() > 0) {
+			throw new ResourceNotValid(errorsCombined);
+		}
+
+		return errorsCombined;
 	}
 	
 	JSONObject returnReqAsJson(String req) {			
