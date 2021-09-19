@@ -89,7 +89,13 @@ public class TerminalDTO {
 		return VERFM;
 	}
 	public void setVERFM(String vERFM) {
-		VERFM = vERFM;
+		this.VERFM = vERFM;
+	}
+
+	@Override
+	public String toString() {
+		return logic + ";" + serial + ";" + model + ";" + sam + ";" + ptid + ";" + plat + ";" + version + ";" + mxr
+				+ ";" + mxf + ";" + VERFM;
 	}
 	
 	
