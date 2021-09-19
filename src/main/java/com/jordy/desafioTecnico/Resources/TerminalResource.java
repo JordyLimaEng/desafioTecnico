@@ -1,8 +1,12 @@
 package com.jordy.desafioTecnico.Resources;
 
+import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -14,9 +18,17 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.jordy.desafioTecnico.DTO.TerminalDTO;
 import com.jordy.desafioTecnico.Entities.Terminal;
 import com.jordy.desafioTecnico.Services.TerminalService;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 
 @RestController
 @Validated
@@ -40,29 +52,72 @@ public class TerminalResource {
 		return ResponseEntity.ok().body(t);
 	}
 
-	@PostMapping(path = "/${resource.entity}")
-	public ResponseEntity<TerminalDTO> addTerminal(
-			@RequestHeader(name="content-type", required = true) MediaType v,
-			@RequestBody String t) {
+	@PostMapping(path = "/${resource.entity}", consumes = MediaType.TEXT_HTML_VALUE)
+	public ResponseEntity<?> SaveWithValidationSchema(@RequestBody String reqStr) throws JsonProcessingException {
+		System.out.println("Request Json String" + reqStr);
 		
-		if(v.toString().equals("text/html;charset=utf-8")) {
-			String[] campos = t.split(";");
-			TerminalDTO tDTO = new TerminalDTO(
-					Integer.parseInt(campos[0]), 
-					campos[1], 
-					campos[2], 
-					Integer.parseInt(campos[3]), 
-					campos[4], 
-					Integer.parseInt(campos[5]), 
-					campos[6], 
-					Integer.parseInt(campos[7]), 
-					Integer.parseInt(campos[8]), 
-					campos[9]);
-			Terminal terminalSave = new Terminal(null, tDTO);
-			service.addTerminal(terminalSave);			
-			return ResponseEntity.ok().body(tDTO);
+		InputStream schemaAsStream = TerminalResource.class.getClassLoader().getResourceAsStream("terminal.schema.json");
+		JsonSchema schema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(schemaAsStream);
+		
+		JSONObject jsonReqStr = returnReqAsJson(reqStr);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+		JsonNode jsonNode = om.readTree(jsonReqStr.toString());
+		
+		Set<ValidationMessage> errors = schema.validate(jsonNode);
+        String errorsCombined = "";
+        for (ValidationMessage error : errors) {
+            System.out.println("Validation Error: "+ error);
+            errorsCombined += error.toString() + "\n";
+        }
+
+        if (errors.size() > 0) {
+        	return ResponseEntity.badRequest().body("Please fix your entry!\n " + errorsCombined);
+        }
+		
+        Terminal terminalSave = new Terminal(null, jsonReqStr);
+		service.addTerminal(terminalSave);
+		
+		return ResponseEntity.ok().body(jsonReqStr.toString());
+	}
+	
+	JSONObject returnReqAsJson(String req) {			
+		String campos[] = req.split(";");
+		JSONObject objJson = new JSONObject();
+						
+		if(!campos[0].equals("")) {
+			objJson.put("logic", Integer.parseInt(campos[0]));			
 		}
-		return null;
+		if(!campos[1].equals("")) {
+			objJson.put("serial", campos[1]);			
+		}
+		if(!campos[2].equals("")) {
+			objJson.put("model", campos[2]);			
+		}
+		if(!campos[3].equals("")) {
+			objJson.put("sam", Integer.parseInt(campos[3]));			
+		}
+		if(!campos[4].equals("")) {
+			objJson.put("ptid", campos[4]);			
+		}
+		if(!campos[5].equals("")) {
+			objJson.put("plat", Integer.parseInt(campos[5]));			
+		}
+		if(!campos[6].equals("")) {
+			objJson.put("version", campos[6]);			
+		}
+		if(!campos[7].equals("")) {
+			objJson.put("mxr", Integer.parseInt(campos[7]));			
+		}
+		if(!campos[8].equals("")) {
+			objJson.put("mxf", Integer.parseInt(campos[8]));			
+		}
+		if(!campos[9].equals("")) {
+			objJson.put("VERFM", campos[9]);			
+		}
+		
+		return objJson;
 	}
 
 }

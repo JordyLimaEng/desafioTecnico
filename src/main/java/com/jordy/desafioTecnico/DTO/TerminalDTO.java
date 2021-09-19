@@ -1,7 +1,5 @@
 package com.jordy.desafioTecnico.DTO;
 
-import java.util.ArrayList;
-
 public class TerminalDTO {
 	
 	int logic;

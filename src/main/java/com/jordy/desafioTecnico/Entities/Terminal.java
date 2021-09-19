@@ -8,6 +8,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.json.JSONObject;
+
 import com.jordy.desafioTecnico.DTO.TerminalDTO;
 
 @Entity
@@ -66,6 +68,21 @@ public class Terminal implements Serializable{
 		this.VERFM = tDTO.getVERFM();
 	}
 	
+	public Terminal(Long id, JSONObject jsonReq) {
+		super();
+		this.id = id;
+		this.logic = jsonReq.getInt("logic");
+		this.serial = jsonReq.getString("serial");
+		this.model = jsonReq.getString("model");
+		this.sam = jsonReq.getInt("sam");
+		this.ptid = jsonReq.getString("ptid");
+		this.plat = jsonReq.getInt("plat");
+		this.version = jsonReq.getString("version");
+		this.mxr = jsonReq.getInt("mxr");
+		this.mxf = jsonReq.getInt("mxf");
+		this.VERFM = jsonReq.getString("VERFM");
+	}
+
 	public int getMxf() {
 		return mxf;
 	}
