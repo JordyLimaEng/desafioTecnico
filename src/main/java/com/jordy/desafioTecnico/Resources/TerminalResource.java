@@ -71,7 +71,7 @@ public class TerminalResource {
 		return ResponseEntity.created(uri).body(terminalSave);
 	}
 	
-	@PutMapping(path = "/${resource.entity}/{logic}")
+	@PutMapping(path = "/${resource.entity}/{logic}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Terminal> updateTerminal(@PathVariable(value = "logic") int logic, @RequestBody TerminalDTO obj) throws JsonMappingException, JsonProcessingException {
 		int logicDb = service.findByLogic(logic).getLogic();
 		
