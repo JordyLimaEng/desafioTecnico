@@ -16,17 +16,17 @@ public interface TerminalRepository extends JpaRepository<Terminal, Long>{
 	
 	@Modifying(clearAutomatically = true)
 	@Transactional
-	@Query(value = "UPDATE TERMINAL TM SET "
-			+ "TM.SERIAL  = ?2, "
-			+ "TM.MODEL   = ?3, "
-			+ "TM.SAM     = ?4, "
-			+ "TM.PTID    = ?5, "
-			+ "TM.PLAT    = ?6, "
-			+ "TM.VERSION = ?7, "
-			+ "TM.MXR 	  = ?8, "
-			+ "TM.MXF     = ?9, "
-			+ "TM.VERFM   = ?10 "
-			+ "WHERE TM.LOGIC = ?1", nativeQuery = true)
+	@Query(value = "UPDATE TERMINAL SET "
+			+ "SERIAL  = ?2, "
+			+ "MODEL   = ?3, "
+			+ "SAM     = ?4, "
+			+ "PTID    = ?5, "
+			+ "PLAT    = ?6, "
+			+ "VERSION = ?7, "
+			+ "MXR 	  = ?8, "
+			+ "MXF     = ?9, "
+			+ "VERFM   = ?10 "
+			+ "WHERE LOGIC = ?1", nativeQuery = true)
 	public void updateTerminal(int logic, String serial, String model, int sam, String ptid, int plat,
 			String version, int mxr, int mxf, String VERFM);
 }
