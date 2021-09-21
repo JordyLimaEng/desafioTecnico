@@ -36,7 +36,7 @@ import com.networknt.schema.ValidationMessage;
 
 @RestController
 @Validated
-@RequestMapping(path = "/${api.version}")
+@RequestMapping(path = "/1.0.0")
 public class TerminalResource {
 
 	@Autowired
@@ -49,14 +49,16 @@ public class TerminalResource {
 		return ResponseEntity.ok().body(list);
 	}
 
-	@GetMapping(path = "/${resource.entity}/{logic}")
+	@GetMapping(path = "/Terminal/{logic}")
 	public ResponseEntity<Terminal> findByLogic(@PathVariable(value = "logic") int logic) {
 		Terminal t = service.findByLogic(logic);
-
+		if(t == null) {
+			return ResponseEntity.notFound().build();
+		}
 		return ResponseEntity.ok().body(t);
 	}
 
-	@PostMapping(path = "/${resource.entity}", consumes = MediaType.TEXT_HTML_VALUE)
+	@PostMapping(path = "/Terminal", consumes = MediaType.TEXT_HTML_VALUE)
 	public ResponseEntity<?> SaveWithValidationSchema(@RequestBody String reqStr) throws JsonProcessingException {
 		
 		JSONObject jsonReqStr = returnReqAsJson(reqStr);
@@ -71,7 +73,7 @@ public class TerminalResource {
 		return ResponseEntity.created(uri).body(terminalSave);
 	}
 	
-	@PutMapping(path = "/${resource.entity}/{logic}")
+	@PutMapping(path = "/Terminal/{logic}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Terminal> updateTerminal(@PathVariable(value = "logic") int logic, @RequestBody TerminalDTO obj) throws JsonMappingException, JsonProcessingException {
 		int logicDb = service.findByLogic(logic).getLogic();
 		
